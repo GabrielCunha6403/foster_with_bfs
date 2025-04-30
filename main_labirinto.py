@@ -1,0 +1,105 @@
+import pygame
+import numpy as np
+import time
+from bfs_serial import bfs_serial
+from bfs_concorrente import bfs_concorrente
+
+class Labirinto:
+    def __init__(self, largura, altura):
+        self.largura = largura
+        self.altura = altura
+        self.grid = np.random.choice([0, 1], size=(altura, largura), p=[0.7, 0.3])
+        self.grid[0][0] = 0
+        self.grid[altura - 1][largura - 1] = 0
+
+    def get_vizinhos(self, pos):
+        x, y = pos
+        vizinhos = []
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.altura and 0 <= ny < self.largura and self.grid[nx][ny] == 0:
+                vizinhos.append((nx, ny))
+        return vizinhos
+
+def mostrar_labirinto(screen, lab, caminho_percorrido=None, caminho_final=None, tentativas=None):
+    screen.fill((0, 0, 0))
+    tile_size = 20
+    for x in range(lab.altura):
+        for y in range(lab.largura):
+            cor = (255, 255, 255) if lab.grid[x][y] == 0 else (50, 50, 50)
+            pygame.draw.rect(screen, cor, (y * tile_size, x * tile_size, tile_size, tile_size))
+    
+    # Mostrar tentativas
+    if tentativas:
+        for x, y in tentativas:
+            pygame.draw.rect(screen, (0, 0, 255), (y * tile_size, x * tile_size, tile_size, tile_size))
+    
+    # Mostrar caminho percorrido
+    if caminho_percorrido:
+        for x, y in caminho_percorrido:
+            pygame.draw.rect(screen, (255, 0, 0), (y * tile_size, x * tile_size, tile_size, tile_size))
+
+    # Mostrar caminho final
+    if caminho_final:
+        for x, y in caminho_final:
+            pygame.draw.rect(screen, (0, 255, 0), (y * tile_size, x * tile_size, tile_size, tile_size))
+    
+    pygame.display.flip()
+
+if __name__ == '__main__':
+    pygame.init()
+    largura, altura = 30, 30
+    tile_size = 20
+    screen = pygame.display.set_mode((largura * tile_size, altura * tile_size))
+    
+    lab = Labirinto(largura, altura)
+    inicio = (0, 0)
+    fim = (altura - 1, largura - 1)
+
+    # BFS Serial
+    print("Resolvendo com BFS Serial...")
+    pygame.display.set_caption("BFS Serial")
+    tentativas_serial = []
+    caminho_serial = []
+    start_time = time.time()
+    
+    for passo in bfs_serial(lab, inicio, fim):
+        tentativas_serial.append(passo)  # Armazenando tentativas
+        caminho_serial.append(passo)  # Armazenando caminho
+        mostrar_labirinto(screen, lab, caminho_percorrido=caminho_serial, tentativas=tentativas_serial)
+        pygame.event.pump()
+        time.sleep(0.01)
+
+    mostrar_labirinto(screen, lab, caminho_final=caminho_serial)
+    end_time = time.time()
+    print(f"Tempo para BFS Serial: {end_time - start_time:.2f} segundos")
+    time.sleep(2)
+
+    # BFS Concorrente
+    print("Resolvendo com BFS Concorrente...")
+    pygame.display.set_caption("BFS Concorrente")
+    tentativas_concorrente = []
+    caminho_concorrente = []
+    start_time = time.time()
+    
+    caminho_concorrente = bfs_concorrente(lab, inicio, fim)
+    if caminho_concorrente:
+        for i in range(len(caminho_concorrente)):
+            tentativas_concorrente.append(caminho_concorrente[i])
+            mostrar_labirinto(screen, lab, caminho_percorrido=caminho_concorrente[:i+1], tentativas=tentativas_concorrente)
+            pygame.event.pump()
+            time.sleep(0.01)
+        mostrar_labirinto(screen, lab, caminho_final=caminho_concorrente)
+    else:
+        print("Nenhum caminho encontrado (concorrente).")
+
+    end_time = time.time()
+    print(f"Tempo para BFS Concorrente: {end_time - start_time:.2f} segundos")
+    
+    print("Finalizado. Feche a janela para sair.")
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+    pygame.quit()
