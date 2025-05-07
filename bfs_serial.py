@@ -1,20 +1,30 @@
 from collections import deque
 
 def bfs_serial(labirinto, inicio, fim):
-    filas = deque([([inicio], inicio)])
+    fila = deque([inicio])
     visitados = set()
+    anterior = {}
 
-    while filas:
-        caminho, atual = filas.popleft()
+    while fila:
+        atual = fila.popleft()
+        yield ("tentativa", atual)
+
         if atual == fim:
-            return caminho
+            # Reconstruir o caminho do fim até o início
+            caminho = []
+            while atual != inicio:
+                caminho.append(atual)
+                atual = anterior[atual]
+            caminho.append(inicio)
+            caminho.reverse()
+            yield ("solucao", caminho)
+            return
 
         if atual in visitados:
             continue
         visitados.add(atual)
 
         for vizinho in labirinto.get_vizinhos(atual):
-            if vizinho not in visitados:
-                filas.append((caminho + [vizinho], vizinho))
-    
-    return None
+            if vizinho not in visitados and vizinho not in fila:
+                anterior[vizinho] = atual
+                fila.append(vizinho)

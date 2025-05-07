@@ -8,9 +8,30 @@ class Labirinto:
     def __init__(self, largura, altura):
         self.largura = largura
         self.altura = altura
-        self.grid = np.random.choice([0, 1], size=(altura, largura), p=[0.7, 0.3])
-        self.grid[0][0] = 0
-        self.grid[altura - 1][largura - 1] = 0
+        self.grid = [
+                        [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+                        [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1],
+                        [0,1,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+                        [0,1,0,1,0,1,1,0,1,0,1,1,1,0,1,0,1,1,1,1],
+                        [0,1,0,1,0,0,0,0,1,0,1,1,1,1,1,0,0,0,0,0],
+                        [0,1,0,1,1,1,1,0,1,0,0,0,0,0,1,1,1,1,1,0],
+                        [0,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1],
+                        [0,1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+                        [0,0,0,0,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0],
+                        [1,0,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0],
+                        [1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                        [1,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+                        [1,0,0,0,1,1,1,1,1,1,1,1,1,0,1,1,1,0,1,0],
+                        [1,1,1,0,1,0,0,0,0,0,1,0,1,0,1,0,1,0,0,0],
+                        [1,0,1,0,1,0,1,1,0,1,1,0,1,0,1,0,1,0,1,0],
+                        [1,0,1,0,1,0,1,0,0,1,0,0,0,0,1,0,1,0,1,0],
+                        [1,0,0,0,1,0,1,1,0,1,1,0,1,0,1,0,1,0,1,0],
+                        [1,1,0,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,1,0],
+                        [1,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,1,0,1,0],
+                        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+                    ]
+    
+    
 
     def get_vizinhos(self, pos):
         x, y = pos
@@ -48,7 +69,7 @@ def mostrar_labirinto(screen, lab, caminho_percorrido=None, caminho_final=None, 
 
 if __name__ == '__main__':
     pygame.init()
-    largura, altura = 30, 30
+    largura, altura = 20, 20
     tile_size = 20
     screen = pygame.display.set_mode((largura * tile_size, altura * tile_size))
     
@@ -63,10 +84,15 @@ if __name__ == '__main__':
     caminho_serial = []
     start_time = time.time()
     
-    for passo in bfs_serial(lab, inicio, fim):
-        tentativas_serial.append(passo)  # Armazenando tentativas
-        caminho_serial.append(passo)  # Armazenando caminho
-        mostrar_labirinto(screen, lab, caminho_percorrido=caminho_serial, tentativas=tentativas_serial)
+    for tipo, dado in bfs_serial(lab, inicio, fim):
+        if tipo == "tentativa":
+            tentativas_serial.append(dado)
+            mostrar_labirinto(screen, lab, tentativas=tentativas_serial)
+        elif tipo == "solucao":
+            caminho_serial = dado
+            mostrar_labirinto(screen, lab, caminho_final=caminho_serial)
+            break
+
         pygame.event.pump()
         time.sleep(0.01)
 
